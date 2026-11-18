@@ -17,6 +17,28 @@ class ExtensionManager:
     """Manages extension discovery and loading for Python packages."""
 
     @classmethod
+    def _collect_extension_names(cls, package: ModuleType) -> list[str]:
+        if not isinstance(package, ModuleType):
+            raise TypeError("package must be a Python module")
+
+        paths: Any | None = getattr(package, "__path__", None)
+
+        if paths is None:
+            raise TypeError("package must be a Python package")
+
+        discovered: list[str] = []
+        for module in iter_modules(paths, prefix=f"{package.__name__}."):
+            if module.name.rsplit(".", 1)[-1].startswith("_"):
+                continue
+
+            if module.ispkg:
+                discovered.extend(cls._collect_extension_names(import_module(module.name)))
+            else:
+                discovered.append(module.name)
+
+        return discovered
+
+    @classmethod
     def discover_extensions(cls, *packages: ModuleType) -> list[str]:
         """Find extension module names in Python packages.
 
@@ -54,30 +76,9 @@ class ExtensionManager:
             A subpackage cannot be imported. Other errors raised during
             subpackage initialization also propagate to the caller.
         """
-        def discover(package: ModuleType) -> list[str]:
-            if not isinstance(package, ModuleType):
-                raise TypeError("package must be a Python module")
-
-            paths: Any | None = getattr(package, "__path__", None)
-
-            if paths is None:
-                raise TypeError("package must be a Python package")
-
-            discovered: list[str] = []
-            for module in iter_modules(paths, prefix=f"{package.__name__}."):
-                if module.name.rsplit(".", 1)[-1].startswith("_"):
-                    continue
-
-                if module.ispkg:
-                    discovered.extend(discover(import_module(module.name)))
-                else:
-                    discovered.append(module.name)
-
-            return discovered
-
         extensions: list[str] = []
         for package in packages:
-            extensions.extend(sorted(discover(package)))
+            extensions.extend(sorted(cls._collect_extension_names(package)))
 
         return extensions
 
