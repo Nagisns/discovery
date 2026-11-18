@@ -68,7 +68,7 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(loaded, expected)
         self.assertEqual(list(bot.extensions), expected)
 
-    async def test_load_error_keeps_and_logs_only_successful_extensions(self):
+    async def test_load_error_keeps_loaded_extensions_and_logs_the_failed_attempt(self):
         package = self.make_package("broken_cogs", {
             "first.py": "async def setup(bot): pass",
             "second.py": "async def setup(bot): pass",
@@ -83,14 +83,17 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(error.exception.name, "broken_cogs.third")
         self.assertEqual(list(bot.extensions), ["broken_cogs.first", "broken_cogs.second"])
-        success_logs = [
+        load_logs = [
             (record.levelname, record.getMessage())
             for record in logs.records
-            if record.getMessage().startswith("Loaded extension ")
+            if record.getMessage().startswith(("Loading extension ", "Loaded extension "))
         ]
-        self.assertEqual(success_logs, [
+        self.assertEqual(load_logs, [
+            ("DEBUG", "Loading extension broken_cogs.first"),
             ("DEBUG", "Loaded extension broken_cogs.first"),
+            ("DEBUG", "Loading extension broken_cogs.second"),
             ("DEBUG", "Loaded extension broken_cogs.second"),
+            ("DEBUG", "Loading extension broken_cogs.third"),
         ])
 
     async def test_discovery_error_prevents_any_extension_from_loading(self):
