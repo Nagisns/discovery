@@ -128,6 +128,7 @@ class ExtensionManager:
         extensions = cls.discover_extensions(*packages)
 
         for extension in extensions:
+            logger.debug("Loading extension %s", extension)
             await bot.load_extension(extension)
             logger.debug("Loaded extension %s", extension)
 
