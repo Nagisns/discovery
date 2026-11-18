@@ -83,17 +83,12 @@ class ExtensionManager:
 
     @classmethod
     async def load_extensions(cls, bot: commands.Bot, *packages: ModuleType) -> list[str]:
-        """Discover extensions and load them sequentially into a bot.
+        """Load extensions into the bot in discovery order.
 
-        All module names are collected by `discover_extensions` before loading.
-        Packages are processed in argument order, with module names sorted
-        alphabetically within each package. With no packages, nothing is loaded
-        and an empty list is returned.
-
-        Loading stops at the first error, which propagates to the caller.
-        Extensions loaded earlier in this call remain loaded.
-        Duplicate names are not removed and already-loaded extensions are not
-        skipped. If discovery fails, no extensions are loaded by this call.
+        ``discover_extensions`` validates the packages and collects all module
+        names before loading begins. Each call to ``bot.load_extension`` is
+        awaited before the next begins. The first loading error propagates to
+        the caller, and extensions loaded earlier in this call remain loaded.
 
         Parameters
         ----------
@@ -105,17 +100,10 @@ class ExtensionManager:
         Returns
         -------
         list of str
-            The fully qualified module names, in loading order. Returned only
-            after all discovered extensions have loaded successfully.
+            Fully qualified module names in loading order once all loads succeed.
 
         Raises
         ------
-        TypeError
-            An argument is not a module, or its ``__path__`` attribute is
-            missing or ``None``.
-        ImportError
-            A subpackage cannot be imported during discovery. Other errors
-            raised during subpackage initialization also propagate to the caller.
         discord.ext.commands.ExtensionNotFound
             An extension cannot be found.
         discord.ext.commands.ExtensionAlreadyLoaded
