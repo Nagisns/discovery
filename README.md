@@ -5,7 +5,7 @@ and loading them into a bot in order.
 
 ## Requirements
 
-- Python 3.15 or later
+- Python 3.13 or later
 - discord.py 2.7.1 or later
 
 These are the version requirements declared in `pyproject.toml`.
