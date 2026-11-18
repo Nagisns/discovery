@@ -83,6 +83,33 @@ bot = MyBot(command_prefix="!", intents=discord.Intents.default())
 To discover modules without loading them as extensions, call
 `ExtensionManager.discover_extensions(extensions)`.
 
+### Logging extension loads
+
+To see which extension is loading during startup, enable `DEBUG` for
+`discovery.manager`. Start the bot with `root_logger=True` so discord.py's
+console handler also displays these messages. This example reads the bot token
+from the `DISCORD_TOKEN` environment variable.
+
+```python
+import logging
+import os
+
+logging.getLogger("discovery.manager").setLevel(logging.DEBUG)
+bot.run(os.environ["DISCORD_TOKEN"], root_logger=True)
+```
+
+If `extensions.admin` loads successfully and `extensions.music` is missing its
+`setup` function, the log messages and the last line of the traceback look like
+this (log prefixes and stack frames omitted).
+
+```text
+Loading extension extensions.admin
+Loaded extension extensions.admin
+Loading extension extensions.music
+...
+discord.ext.commands.errors.NoEntryPointError: Extension 'extensions.music' has no 'setup' function.
+```
+
 ## Maintenance and support
 
 This project was developed for personal use and is shared as open source under
