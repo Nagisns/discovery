@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 import logging
+from logging import Logger
 from importlib import import_module
 from pkgutil import iter_modules
 from types import ModuleType
@@ -11,7 +12,7 @@ from typing import Any
 from discord.ext import commands
 
 
-logger = logging.getLogger(__name__)
+logger: Logger = logging.getLogger(__name__)
 
 class ExtensionManager:
     """Manages extension discovery and loading for Python packages."""
@@ -114,7 +115,7 @@ class ExtensionManager:
         discord.ext.commands.ExtensionFailed
             An extension or its ``setup`` function raises an error during loading.
         """
-        extensions = cls.discover_extensions(*packages)
+        extensions: list[str] = cls.discover_extensions(*packages)
 
         for extension in extensions:
             logger.debug("Loading extension %s", extension)
