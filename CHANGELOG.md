@@ -2,6 +2,13 @@
 
 Notable changes to this project are documented here.
 
+## v1.0.1 - 2026-11-18
+
+### Added
+
+- Support for Python 3.13 and 3.14, lowering the minimum supported version from 3.15 to 3.13.
+- `load_extensions` logs each extension name at DEBUG level before loading it and again after a successful load.
+
 ## v1.0.0 - 2026-11-18
 
 Initial release.
