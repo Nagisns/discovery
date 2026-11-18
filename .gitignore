@@ -1,0 +1,15 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+
+# uv lockfile
+uv.lock
+
+# Python package metadata
+*.egg-info/
+
+# Local environment variables
+.env
