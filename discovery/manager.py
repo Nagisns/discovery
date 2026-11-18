@@ -2,6 +2,7 @@
 # Licensed under the MIT License.
 # See the LICENSE file for details.
 
+import logging
 from importlib import import_module
 from pkgutil import iter_modules
 from types import ModuleType
@@ -9,6 +10,8 @@ from typing import Any
 
 from discord.ext import commands
 
+
+logger = logging.getLogger(__name__)
 
 class ExtensionManager:
     """Manages extension discovery and loading for Python packages."""
@@ -126,5 +129,6 @@ class ExtensionManager:
 
         for extension in extensions:
             await bot.load_extension(extension)
+            logger.debug("Loaded extension %s", extension)
 
         return extensions
