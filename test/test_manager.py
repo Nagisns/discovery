@@ -68,19 +68,30 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(loaded, expected)
         self.assertEqual(list(bot.extensions), expected)
 
-    async def test_load_error_preserves_earlier_extensions_and_stops_loading(self):
+    async def test_load_error_keeps_and_logs_only_successful_extensions(self):
         package = self.make_package("broken_cogs", {
             "first.py": "async def setup(bot): pass",
-            "second.py": "",
-            "third.py": "async def setup(bot): pass",
+            "second.py": "async def setup(bot): pass",
+            "third.py": "",
+            "unreached.py": "async def setup(bot): pass",
         })
         bot = await self.make_bot()
 
-        with self.assertRaises(commands.NoEntryPointError) as error:
-            await ExtensionManager.load_extensions(bot, package)
+        with self.assertLogs("discovery.manager", level="DEBUG") as logs:
+            with self.assertRaises(commands.NoEntryPointError) as error:
+                await ExtensionManager.load_extensions(bot, package)
 
-        self.assertEqual(error.exception.name, "broken_cogs.second")
-        self.assertEqual(list(bot.extensions), ["broken_cogs.first"])
+        self.assertEqual(error.exception.name, "broken_cogs.third")
+        self.assertEqual(list(bot.extensions), ["broken_cogs.first", "broken_cogs.second"])
+        success_logs = [
+            (record.levelname, record.getMessage())
+            for record in logs.records
+            if record.getMessage().startswith("Loaded extension ")
+        ]
+        self.assertEqual(success_logs, [
+            ("DEBUG", "Loaded extension broken_cogs.first"),
+            ("DEBUG", "Loaded extension broken_cogs.second"),
+        ])
 
     async def test_discovery_error_prevents_any_extension_from_loading(self):
         valid = self.make_package("valid_cogs", {"first.py": "async def setup(bot): pass"})
