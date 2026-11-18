@@ -48,6 +48,19 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
             ["z_cogs.group.alpha", "z_cogs.zeta", "a_cogs.beta"],
         )
 
+    def test_discovery_preserves_duplicates_in_argument_order_for_overlapping_packages(self):
+        cogs = self.make_package("cogs", {
+            "admin/__init__.py": "",
+            "admin/ban.py": "",
+            "music.py": "",
+        })
+        admin = import_module("cogs.admin")
+
+        self.assertEqual(
+            ExtensionManager.discover_extensions(cogs, admin),
+            ["cogs.admin.ban", "cogs.music", "cogs.admin.ban"],
+        )
+
     async def test_loading_waits_for_each_extension_in_order(self):
         package = self.make_package("ordered_cogs", {
             "first.py": (
