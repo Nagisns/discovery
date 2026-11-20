@@ -2,6 +2,12 @@
 
 Notable changes to this project are documented here.
 
+## v1.0.3
+
+### Added
+
+- Prepared the first PyPI release under the `discord-extension-discovery` distribution name.
+
 ## v1.0.2 - 2026-11-20
 
 ### Added

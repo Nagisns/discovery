@@ -1,5 +1,6 @@
 # discovery
 
+[![PyPI](https://img.shields.io/pypi/v/discord-extension-discovery?logo=pypi&logoColor=white)](https://pypi.org/project/discord-extension-discovery/)
 ![Python 3.13](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
 ![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
 ![Python 3.15](https://img.shields.io/badge/Python-3.15-3776AB?logo=python&logoColor=white)
@@ -17,7 +18,13 @@ These are the version requirements declared in `pyproject.toml`.
 
 ## Installation
 
-Run the following command from the project root to install the local package:
+Install from PyPI:
+
+```sh
+python -m pip install discord-extension-discovery
+```
+
+To install from a local checkout, run the following command from the project root:
 
 ```sh
 python -m pip install .
