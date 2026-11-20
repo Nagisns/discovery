@@ -33,6 +33,7 @@ class ExtensionManager:
                 continue
 
             if module.ispkg:
+                logger.debug("Importing subpackage %s", module.name)
                 discovered.extend(cls._collect_extension_names(import_module(module.name)))
             else:
                 discovered.append(module.name)
