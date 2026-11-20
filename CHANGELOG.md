@@ -2,6 +2,12 @@
 
 Notable changes to this project are documented here.
 
+## v1.0.2 - 2026-11-20
+
+### Added
+
+- Extension discovery logs each subpackage's fully qualified name at DEBUG level before importing it.
+
 ## v1.0.1 - 2026-11-18
 
 ### Added
