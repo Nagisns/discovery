@@ -48,6 +48,24 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
             ["z_cogs.group.alpha", "z_cogs.zeta", "a_cogs.beta"],
         )
 
+    def test_discovery_logs_subpackage_before_importing_it(self):
+        package = self.make_package("logged_cogs", {
+            "group/__init__.py": (
+                "import logging\n"
+                "logging.getLogger('discovery.manager').debug('Subpackage initializer ran')\n"
+            ),
+        })
+
+        with self.assertLogs("discovery.manager", level="DEBUG") as logs:
+            ExtensionManager.discover_extensions(package)
+
+        expected_logs = [
+            "DEBUG:discovery.manager:Importing subpackage logged_cogs.group",
+            "DEBUG:discovery.manager:Subpackage initializer ran",
+        ]
+        relevant_logs = [message for message in logs.output if message in expected_logs]
+        self.assertEqual(relevant_logs, expected_logs)
+
     def test_discovery_preserves_duplicates_in_argument_order_for_overlapping_packages(self):
         cogs = self.make_package("cogs", {
             "admin/__init__.py": "",
