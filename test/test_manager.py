@@ -131,7 +131,12 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
         })
         bot = await self.make_bot()
 
-        with self.assertRaisesRegex(ImportError, "subpackage failed to import"):
-            await ExtensionManager.load_extensions(bot, valid, broken)
+        with self.assertLogs("discovery.manager", level="DEBUG") as logs:
+            with self.assertRaisesRegex(ImportError, "subpackage failed to import"):
+                await ExtensionManager.load_extensions(bot, valid, broken)
 
+        self.assertIn(
+            "DEBUG:discovery.manager:Importing subpackage unreadable_cogs.group",
+            logs.output,
+        )
         self.assertFalse(bot.extensions)
