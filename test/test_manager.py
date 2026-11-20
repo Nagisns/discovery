@@ -81,6 +81,21 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(loaded, expected)
         self.assertEqual(list(bot.extensions), expected)
 
+    async def test_loading_stops_at_duplicate_extension(self):
+        repeated = self.make_package("duplicate_cogs", {
+            "first.py": "async def setup(bot): pass",
+        })
+        unreached = self.make_package("unreached_cogs", {
+            "later.py": "async def setup(bot): pass",
+        })
+        bot = await self.make_bot()
+
+        with self.assertRaises(commands.ExtensionAlreadyLoaded) as error:
+            await ExtensionManager.load_extensions(bot, repeated, repeated, unreached)
+
+        self.assertEqual(error.exception.name, "duplicate_cogs.first")
+        self.assertEqual(list(bot.extensions), ["duplicate_cogs.first"])
+
     async def test_load_error_keeps_loaded_extensions_and_logs_the_failed_attempt(self):
         package = self.make_package("broken_cogs", {
             "first.py": "async def setup(bot): pass",
