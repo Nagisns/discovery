@@ -43,9 +43,10 @@ from discovery import ExtensionManager
 Both methods are class methods and can be called without creating an instance.
 Pass imported Python packages as arguments, rather than strings or directory paths.
 
-### `ExtensionManager.discover_extensions(*packages: ModuleType) -> list[str]`
+### `ExtensionManager.discover_extensions(*packages: ModuleType, exclude: str | None = None) -> list[str]`
 
 - Recursively searches the supplied packages and returns fully qualified module names.
+- Skips directly supplied packages whose fully qualified name exactly matches `exclude`. The recursive search can still reach a skipped package through another supplied package.
 - Searches inside subpackages without including the subpackages themselves in the results.
 - Skips discovered modules and subpackages whose final name component starts with `_`, including all descendants of skipped subpackages. This filter does not apply to packages passed directly as arguments.
 - Does not check for a `setup` function. The traversal itself does not import leaf modules.

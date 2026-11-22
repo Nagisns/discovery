@@ -18,7 +18,7 @@ class ExtensionManager:
     """Manages extension discovery and loading for Python packages."""
 
     @classmethod
-    def _collect_extension_names(cls, package: ModuleType) -> list[str]:
+    def _collect_extension_names(cls, package: ModuleType, *, exclude: str | None = None) -> list[str]:
         if not isinstance(package, ModuleType):
             raise TypeError("package must be a Python module")
 
@@ -26,6 +26,9 @@ class ExtensionManager:
 
         if paths is None:
             raise TypeError("package must be a Python package")
+
+        if exclude is not None and package.__name__ == exclude:
+            return []
 
         discovered: list[str] = []
         for module in iter_modules(paths, prefix=f"{package.__name__}."):
@@ -41,7 +44,7 @@ class ExtensionManager:
         return discovered
 
     @classmethod
-    def discover_extensions(cls, *packages: ModuleType) -> list[str]:
+    def discover_extensions(cls, *packages: ModuleType, exclude: str | None = None) -> list[str]:
         """Find extension module names in Python packages.
 
         Subpackages are imported and searched recursively, but are not included
@@ -61,6 +64,10 @@ class ExtensionManager:
         ----------
         *packages : types.ModuleType
             The imported Python packages to search, in order.
+        exclude : str or None, optional
+            The fully qualified name of a directly supplied package to skip.
+            The recursive search can still reach that package through another
+            supplied package. The default is ``None``.
 
         Returns
         -------
@@ -80,7 +87,7 @@ class ExtensionManager:
         """
         extensions: list[str] = []
         for package in packages:
-            extensions.extend(sorted(cls._collect_extension_names(package)))
+            extensions.extend(sorted(cls._collect_extension_names(package, exclude=exclude)))
 
         return extensions
 
