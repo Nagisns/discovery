@@ -58,9 +58,10 @@ Pass imported Python packages as arguments, rather than strings or directory pat
 - Raises `TypeError` if an argument is not a `ModuleType`, or if its `__path__` attribute is missing or `None`.
 - Propagates exceptions raised while importing subpackages to the caller.
 
-### `await ExtensionManager.load_extensions(bot: commands.Bot, *packages: ModuleType) -> list[str]`
+### `await ExtensionManager.load_extensions(bot: commands.Bot, *packages: ModuleType, exclude: str | None = None) -> list[str]`
 
 - Collects all module names using `discover_extensions`, then calls `await bot.load_extension(name)` sequentially in that order.
+- Skips directly supplied packages whose fully qualified name exactly matches `exclude`. Their extensions can still be loaded if discovery reaches them through another supplied package.
 - Does not begin loading extensions if discovery fails. Side effects from imports during discovery are not rolled back.
 - Returns the fully qualified module names in loading order only after every extension has loaded successfully.
 - Loads nothing and returns an empty list when no packages are supplied.

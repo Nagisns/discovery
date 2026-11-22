@@ -92,7 +92,7 @@ class ExtensionManager:
         return extensions
 
     @classmethod
-    async def load_extensions(cls, bot: commands.Bot, *packages: ModuleType) -> list[str]:
+    async def load_extensions(cls, bot: commands.Bot, *packages: ModuleType, exclude: str | None = None) -> list[str]:
         """Load extensions into the bot in discovery order.
 
         ``discover_extensions`` validates the packages and collects all module
@@ -106,6 +106,11 @@ class ExtensionManager:
             The bot into which the extensions are loaded.
         *packages : types.ModuleType
             The imported Python packages to search, in order.
+        exclude : str or None, optional
+            The fully qualified name of a directly supplied package to skip
+            during discovery. Extensions in that package can still be loaded
+            if discovery reaches it through another supplied package. The
+            default is ``None``.
 
         Returns
         -------
@@ -114,6 +119,9 @@ class ExtensionManager:
 
         Raises
         ------
+        TypeError
+            A package argument fails validation or ``exclude`` has an invalid
+            type.
         discord.ext.commands.ExtensionNotFound
             An extension cannot be found.
         discord.ext.commands.ExtensionAlreadyLoaded
@@ -123,7 +131,12 @@ class ExtensionManager:
         discord.ext.commands.ExtensionFailed
             An extension or its ``setup`` function raises an error during loading.
         """
-        extensions: list[str] = cls.discover_extensions(*packages)
+        if exclude is None:
+            extensions: list[str] = cls.discover_extensions(*packages)
+        elif isinstance(exclude, str):
+            extensions: list[str] = cls.discover_extensions(*packages, exclude=exclude)
+        else:
+            raise TypeError("exclude must be a string or None")
 
         for extension in extensions:
             logger.debug("Loading extension %s", extension)
