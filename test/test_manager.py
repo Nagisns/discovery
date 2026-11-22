@@ -140,6 +140,51 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(loaded, expected)
         self.assertEqual(list(bot.extensions), expected)
 
+    async def test_loading_skips_the_excluded_package(self):
+        excluded = self.make_package("excluded_cogs", {
+            "skipped.py": "async def setup(bot): pass",
+        })
+        included = self.make_package("included_cogs", {
+            "active.py": "async def setup(bot): pass",
+        })
+        bot = await self.make_bot()
+
+        loaded = await ExtensionManager.load_extensions(
+            bot, excluded, included, exclude="excluded_cogs"
+        )
+
+        self.assertEqual(loaded, ["included_cogs.active"])
+        self.assertEqual(list(bot.extensions), loaded)
+
+    async def test_loading_reaches_excluded_package_through_parent(self):
+        cogs = self.make_package("cogs", {
+            "admin/__init__.py": "",
+            "admin/ban.py": "async def setup(bot): pass",
+        })
+        admin = import_module("cogs.admin")
+        bot = await self.make_bot()
+
+        loaded = await ExtensionManager.load_extensions(
+            bot, cogs, admin, exclude="cogs.admin"
+        )
+
+        self.assertEqual(loaded, ["cogs.admin.ban"])
+        self.assertEqual(list(bot.extensions), loaded)
+
+    async def test_loading_rejects_invalid_exclude_type(self):
+        package = self.make_package("valid_cogs", {
+            "active.py": "async def setup(bot): pass",
+        })
+        bot = await self.make_bot()
+
+        with self.assertRaisesRegex(TypeError, "exclude must be a string or None"):
+            # Pass an invalid value deliberately to test runtime validation.
+            await ExtensionManager.load_extensions(
+                bot, package, exclude=cast(str, object())
+            )
+
+        self.assertFalse(bot.extensions)
+
     async def test_loading_stops_at_duplicate_extension(self):
         repeated = self.make_package("duplicate_cogs", {
             "first.py": "async def setup(bot): pass",
