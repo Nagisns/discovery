@@ -68,6 +68,19 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
         relevant_logs = [message for message in logs.output if message in expected_logs]
         self.assertEqual(relevant_logs, expected_logs)
 
+    def test_discovery_logs_matching_package_exclusion_at_debug_level(self):
+        self.make_package("debug_cogs", {"admin/__init__.py": ""})
+        admin = import_module("debug_cogs.admin")
+
+        with self.assertLogs("discovery.manager", level="DEBUG") as logs:
+            ExtensionManager.discover_extensions(admin, exclude="debug_cogs.admin")
+
+        self.assertEqual(logs.output, ["DEBUG:discovery.manager:Exclude package: debug_cogs.admin"])
+
+        with self.assertNoLogs("discovery.manager", level="DEBUG"):
+            ExtensionManager.discover_extensions(admin, exclude="admin")
+            ExtensionManager.discover_extensions(admin)
+
     def test_discovery_preserves_duplicates_in_argument_order_for_overlapping_packages(self):
         cogs = self.make_package("cogs", {
             "admin/__init__.py": "",
