@@ -3,7 +3,8 @@ import unittest
 from importlib import import_module, invalidate_caches
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
+from typing import cast
 from unittest.mock import patch
 
 import discord
@@ -79,6 +80,45 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
             ExtensionManager.discover_extensions(cogs, admin),
             ["cogs.admin.ban", "cogs.music", "cogs.admin.ban"],
         )
+
+    def test_discovery_skips_excluded_package_before_importing_subpackages(self):
+        excluded = self.make_package("excluded_cogs", {
+            "group/__init__.py": "raise AssertionError('excluded subpackage imported')",
+        })
+        included = self.make_package("included_cogs", {"active.py": ""})
+
+        self.assertEqual(
+            ExtensionManager.discover_extensions(excluded, included, exclude="excluded_cogs"),
+            ["included_cogs.active"],
+        )
+
+    def test_discovery_excludes_only_direct_arguments_by_fully_qualified_name(self):
+        cogs = self.make_package("cogs", {
+            "admin/__init__.py": "",
+            "admin/ban.py": "",
+        })
+        admin = import_module("cogs.admin")
+
+        self.assertEqual(
+            ExtensionManager.discover_extensions(cogs, admin, exclude="cogs.admin"),
+            ["cogs.admin.ban"],
+        )
+        self.assertEqual(
+            ExtensionManager.discover_extensions(admin, exclude="admin"),
+            ["cogs.admin.ban"],
+        )
+
+    def test_discovery_validates_packages_before_excluding_them(self):
+        name = "invalid_cogs"
+        invalid_packages = (None, SimpleNamespace(__name__=name), ModuleType(name))
+
+        for package in invalid_packages:
+            with self.subTest(package=package):
+                with self.assertRaises(TypeError):
+                    # Pass the original value to test runtime validation.
+                    ExtensionManager.discover_extensions(
+                        cast(ModuleType, package), exclude=name
+                    )
 
     async def test_loading_waits_for_each_extension_in_order(self):
         package = self.make_package("ordered_cogs", {
