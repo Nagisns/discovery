@@ -27,12 +27,14 @@ class ExtensionManager:
         if paths is None:
             raise TypeError("package must be a Python package")
 
-        if exclude is not None and package.__name__ == exclude:
-            logger.debug("Exclude package: %s", package.__name__)
+        package_name: str = package.__name__
+
+        if exclude is not None and package_name == exclude:
+            logger.debug("Exclude package: %s", package_name)
             return []
 
         discovered: list[str] = []
-        for module in iter_modules(paths, prefix=f"{package.__name__}."):
+        for module in iter_modules(paths, prefix=f"{package_name}."):
             if module.name.rsplit(".", 1)[-1].startswith("_"):
                 continue
 
