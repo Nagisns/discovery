@@ -1,6 +1,6 @@
 import sys
 import unittest
-from importlib import import_module
+from importlib import import_module, invalidate_caches
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import ModuleType
@@ -26,6 +26,7 @@ class ExtensionManagerTests(unittest.IsolatedAsyncioTestCase):
             path = package / relative_path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(source, encoding="utf-8")
+        invalidate_caches()
         return import_module(name)
 
     async def make_bot(self) -> commands.Bot:
