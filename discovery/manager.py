@@ -28,6 +28,7 @@ class ExtensionManager:
             raise TypeError("package must be a Python package")
 
         if exclude is not None and package.__name__ == exclude:
+            logger.debug("Exclude package: %s", package.__name__)
             return []
 
         discovered: list[str] = []
